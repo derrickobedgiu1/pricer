@@ -1,6 +1,6 @@
 {
     "name": "derrickob/pricer",
-    "description": "A PHP package for calculating prices with taxes, fees, discounts, subscriptions, credits and handling complex pricing scenarios.",
+    "description": "A PHP pricing calculator that does one thing perfectly: calculate prices with taxes, discounts, fees, and credits in the correct order.",
     "keywords": [
         "price",
         "pricing",
@@ -23,18 +23,18 @@
         }
     ],
     "require": {
-        "php": "^8.1|^8.2|^8.3|^8.4",
+        "php": "^8.1",
         "ext-intl": "*",
         "ext-bcmath": "*"
     },
     "require-dev": {
         "friendsofphp/php-cs-fixer": "^3.0",
-        "nunomaduro/collision": "^7.0|^8.0",
-        "orchestra/testbench": "^7.0|^8.0|^9.0",
+        "nunomaduro/collision": "^7.0 || ^8.0",
+        "orchestra/testbench": "^7.0 || ^8.0 || ^9.0",
         "pestphp/pest": "^2.0",
         "pestphp/pest-plugin-laravel": "^2.0",
         "phpstan/phpstan": "^1.10",
-        "phpunit/phpunit": "^10.0|^11.0",
+        "phpunit/phpunit": "^10.0 || ^11.0",
         "rector/rector": "^1.2"
     },
     "autoload": {
