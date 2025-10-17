@@ -1,0 +1,103 @@
+name: Bug Report
+description: Report a bug or unexpected behavior
+title: "[Bug]: "
+labels: ["bug"]
+body:
+  - type: markdown
+    attributes:
+      value: |
+        Thanks for taking the time to report a bug! Please fill out the form below.
+
+  - type: textarea
+    id: description
+    attributes:
+      label: Bug Description
+      description: A clear and concise description of what the bug is.
+      placeholder: "When I call Pricer::base()->tax()..."
+    validations:
+      required: true
+
+  - type: textarea
+    id: reproduce
+    attributes:
+      label: Steps to Reproduce
+      description: Steps to reproduce the behavior
+      placeholder: |
+        1. Install package with `composer require derrickob/pricer`
+        2. Run the following code...
+        3. See error...
+    validations:
+      required: true
+
+  - type: textarea
+    id: expected
+    attributes:
+      label: Expected Behavior
+      description: What did you expect to happen?
+      placeholder: "I expected the total to be $110.00"
+    validations:
+      required: true
+
+  - type: textarea
+    id: actual
+    attributes:
+      label: Actual Behavior
+      description: What actually happened?
+      placeholder: "But I got $109.99 instead"
+    validations:
+      required: true
+
+  - type: textarea
+    id: code
+    attributes:
+      label: Code Sample
+      description: Please provide a minimal code sample that reproduces the issue
+      render: php
+      placeholder: |
+        use DerrickOb\Pricer\Pricer;
+        use DerrickOb\Pricer\Enums\AmountType;
+
+        $price = Pricer::base(100, 'USD')
+            ->tax(10, AmountType::PERCENT)
+            ->calculate();
+
+        echo $price->getTotal()->format();
+    validations:
+      required: true
+
+  - type: input
+    id: php-version
+    attributes:
+      label: PHP Version
+      description: What version of PHP are you using?
+      placeholder: "8.3.0"
+    validations:
+      required: true
+
+  - type: input
+    id: package-version
+    attributes:
+      label: Pricer Version
+      description: What version of the package are you using?
+      placeholder: "1.0.0"
+    validations:
+      required: true
+
+  - type: dropdown
+    id: laravel
+    attributes:
+      label: Are you using Laravel?
+      options:
+        - "No"
+        - "Yes - Laravel 11"
+        - "Yes - Laravel 10"
+        - "Yes - Laravel 9"
+    validations:
+      required: true
+
+  - type: textarea
+    id: additional
+    attributes:
+      label: Additional Context
+      description: Add any other context about the problem here
+      placeholder: "This only happens when..."
