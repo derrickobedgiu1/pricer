@@ -1,0 +1,79 @@
+{
+    "name": "derrickob/pricer",
+    "description": "A PHP package for calculating prices with taxes, fees, discounts, subscriptions, credits and handling complex pricing scenarios.",
+    "keywords": [
+        "price",
+        "pricing",
+        "calculator",
+        "tax",
+        "discount",
+        "fee",
+        "laravel",
+        "ecommerce",
+        "subscription",
+        "billing"
+    ],
+    "homepage": "https://github.com/derrickobedgiu1/pricer",
+    "license": "MIT",
+    "authors": [
+        {
+            "name": "Derrick Obedgiu",
+            "email": "derrick@obedgiu.me",
+            "role": "Developer"
+        }
+    ],
+    "require": {
+        "php": "^8.1|^8.2|^8.3|^8.4",
+        "ext-intl": "*",
+        "ext-bcmath": "*"
+    },
+    "require-dev": {
+        "friendsofphp/php-cs-fixer": "^3.0",
+        "nunomaduro/collision": "^7.0|^8.0",
+        "orchestra/testbench": "^7.0|^8.0|^9.0",
+        "pestphp/pest": "^2.0",
+        "pestphp/pest-plugin-laravel": "^2.0",
+        "phpstan/phpstan": "^1.10",
+        "phpunit/phpunit": "^10.0|^11.0",
+        "rector/rector": "^1.2"
+    },
+    "autoload": {
+        "psr-4": {
+            "DerrickOb\\Pricer\\": "src/"
+        },
+        "files": [
+            "src/Support/helpers.php"
+        ]
+    },
+    "autoload-dev": {
+        "psr-4": {
+            "DerrickOb\\Pricer\\Tests\\": "tests/"
+        }
+    },
+    "scripts": {
+        "test": "vendor/bin/pest",
+        "test-coverage": "vendor/bin/pest --coverage",
+        "analyse": "vendor/bin/phpstan analyse",
+        "format": "vendor/bin/php-cs-fixer fix",
+        "refactor": "vendor/bin/rector process",
+        "refactor:dry": "vendor/bin/rector process --dry-run"
+    },
+    "config": {
+        "sort-packages": true,
+        "allow-plugins": {
+            "pestphp/pest-plugin": true
+        }
+    },
+    "extra": {
+        "laravel": {
+            "providers": [
+                "DerrickOb\\Pricer\\Laravel\\PricerServiceProvider"
+            ],
+            "aliases": {
+                "Pricer": "DerrickOb\\Pricer\\Laravel\\Facades\\Pricer"
+            }
+        }
+    },
+    "minimum-stability": "stable",
+    "prefer-stable": true
+}
