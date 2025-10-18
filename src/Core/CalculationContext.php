@@ -8,13 +8,11 @@ use DerrickOb\Pricer\Exceptions\InvalidAmountException;
 use DerrickOb\Pricer\Exceptions\InvalidCurrencyException;
 
 /**
- * Holds the current state of a price calculation.
- * Provides components with access to intermediate totals.
+ * Holds the running state during price calculation.
+ * Tracks totals for different component types and maintains the subtotal for tax calculations.
  */
 final class CalculationContext
 {
-    private Money $currentTotal;
-
     private Money $taxTotal;
 
     private Money $feeTotal;
@@ -25,60 +23,50 @@ final class CalculationContext
 
     private Money $creditTotal;
 
+    private Money $currentTotal;
+
+    private Money $tipTotal;
+
+    /**
+     * @throws InvalidAmountException
+     * @throws InvalidCurrencyException
+     */
     public function __construct(
-        private readonly Money $baseAmount,
-        private readonly string $currency
+        private Money $subtotal,
+        string $currency
     ) {
-        $this->currentTotal = $baseAmount;
         $this->taxTotal = Money::of(0, $currency);
         $this->feeTotal = Money::of(0, $currency);
         $this->discountTotal = Money::of(0, $currency);
         $this->shippingTotal = Money::of(0, $currency);
         $this->creditTotal = Money::of(0, $currency);
+        $this->tipTotal = Money::of(0, $currency);
+        $this->currentTotal = $this->subtotal;
     }
 
-    public function getBaseAmount(): Money
-    {
-        return $this->baseAmount;
-    }
-
-    public function getCurrentTotal(): Money
-    {
-        return $this->currentTotal;
-    }
-
-    public function setCurrentTotal(Money $total): void
-    {
-        $this->currentTotal = $total;
-    }
-
-    /**
-     * @throws InvalidAmountException
-     * @throws InvalidCurrencyException
-     */
     public function getSubtotal(): Money
     {
-        return $this->baseAmount
-            ->add($this->shippingTotal)
-            ->subtract($this->discountTotal);
+        return $this->subtotal;
     }
 
-    /**
-     * @throws InvalidCurrencyException
-     * @throws InvalidAmountException
-     */
+    public function updateSubtotal(Money $newSubtotal): void
+    {
+        $this->subtotal = $newSubtotal;
+    }
+
     public function getPreTaxTotal(): Money
     {
-        return $this->getSubtotal();
+        return $this->subtotal;
     }
 
-    /**
-     * @throws InvalidCurrencyException
-     * @throws InvalidAmountException
-     */
     public function getPostTaxTotal(): Money
     {
-        return $this->getSubtotal()->add($this->taxTotal);
+        return $this->subtotal->add($this->taxTotal);
+    }
+
+    public function addTax(Money $amount): void
+    {
+        $this->taxTotal = $this->taxTotal->add($amount);
     }
 
     public function getTaxTotal(): Money
@@ -86,13 +74,9 @@ final class CalculationContext
         return $this->taxTotal;
     }
 
-    /**
-     * @throws InvalidCurrencyException
-     * @throws InvalidAmountException
-     */
-    public function addTax(Money $amount): void
+    public function addFee(Money $amount): void
     {
-        $this->taxTotal = $this->taxTotal->add($amount);
+        $this->feeTotal = $this->feeTotal->add($amount);
     }
 
     public function getFeeTotal(): Money
@@ -100,13 +84,9 @@ final class CalculationContext
         return $this->feeTotal;
     }
 
-    /**
-     * @throws InvalidAmountException
-     * @throws InvalidCurrencyException
-     */
-    public function addFee(Money $amount): void
+    public function addDiscount(Money $amount): void
     {
-        $this->feeTotal = $this->feeTotal->add($amount);
+        $this->discountTotal = $this->discountTotal->add($amount);
     }
 
     public function getDiscountTotal(): Money
@@ -114,13 +94,9 @@ final class CalculationContext
         return $this->discountTotal;
     }
 
-    /**
-     * @throws InvalidCurrencyException
-     * @throws InvalidAmountException
-     */
-    public function addDiscount(Money $amount): void
+    public function addShipping(Money $amount): void
     {
-        $this->discountTotal = $this->discountTotal->add($amount->absolute());
+        $this->shippingTotal = $this->shippingTotal->add($amount);
     }
 
     public function getShippingTotal(): Money
@@ -128,13 +104,9 @@ final class CalculationContext
         return $this->shippingTotal;
     }
 
-    /**
-     * @throws InvalidAmountException
-     * @throws InvalidCurrencyException
-     */
-    public function addShipping(Money $amount): void
+    public function addCredit(Money $amount): void
     {
-        $this->shippingTotal = $this->shippingTotal->add($amount);
+        $this->creditTotal = $this->creditTotal->add($amount);
     }
 
     public function getCreditTotal(): Money
@@ -142,17 +114,23 @@ final class CalculationContext
         return $this->creditTotal;
     }
 
-    /**
-     * @throws InvalidAmountException
-     * @throws InvalidCurrencyException
-     */
-    public function addCredit(Money $amount): void
+    public function addTip(Money $amount): void
     {
-        $this->creditTotal = $this->creditTotal->add($amount->absolute());
+        $this->tipTotal = $this->tipTotal->add($amount);
     }
 
-    public function getCurrency(): string
+    public function getTipTotal(): Money
     {
-        return $this->currency;
+        return $this->tipTotal;
+    }
+
+    public function setCurrentTotal(Money $total): void
+    {
+        $this->currentTotal = $total;
+    }
+
+    public function getCurrentTotal(): Money
+    {
+        return $this->currentTotal;
     }
 }

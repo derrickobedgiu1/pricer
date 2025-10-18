@@ -17,17 +17,16 @@ use DerrickOb\Pricer\Contracts\Calculable;
 use DerrickOb\Pricer\Enums\AmountType;
 use DerrickOb\Pricer\Enums\BillingCycle;
 use DerrickOb\Pricer\Enums\CreditApplication;
+use DerrickOb\Pricer\Enums\TaxMode;
 use DerrickOb\Pricer\Enums\TipCalculation;
-use DerrickOb\Pricer\Exceptions\InvalidAmountException;
-use DerrickOb\Pricer\Exceptions\InvalidCurrencyException;
 use DerrickOb\Pricer\ValueObjects\PriceTier;
 
 /**
- * Fluent builder for creating price calculations.
+ * Fluent builder for constructing price calculations.
  */
-final readonly class PriceBuilder implements Calculable
+final class PriceBuilder implements Calculable
 {
-    private Calculator $calculator;
+    private readonly Calculator $calculator;
 
     public function __construct(Money $baseAmount, ?Context $context = null)
     {
@@ -35,14 +34,57 @@ final readonly class PriceBuilder implements Calculable
     }
 
     // =========================================================================
-    // Basic Components
+    // Tax Methods
     // =========================================================================
 
-    public function tax(float|int $rate, AmountType $type = AmountType::PERCENT, string $name = 'tax'): self
-    {
-        $this->calculator->addComponent(new Tax($rate, $type, $name));
+    /**
+     * Add a tax to the calculation.
+     *
+     * @param float|int $rate Tax rate (percentage) or amount (fixed)
+     * @param AmountType $type AmountType::PERCENT or AmountType::FIXED
+     * @param string $name Tax identifier
+     * @param TaxMode|null $mode How the tax should be calculated (defaults to ON_SUBTOTAL)
+     */
+    public function tax(
+        float|int $rate,
+        AmountType $type = AmountType::PERCENT,
+        string $name = 'tax',
+        ?TaxMode $mode = null
+    ): self {
+        $this->calculator->addComponent(new Tax($rate, $type, $name, $mode));
 
         return $this;
+    }
+
+    /**
+     * Add a tax that calculates on the subtotal (non-compounding).
+     * This is the standard behavior for most tax jurisdictions.
+     *
+     * @param float|int $rate Tax rate (percentage) or amount (fixed)
+     * @param AmountType $type AmountType::PERCENT or AmountType::FIXED
+     * @param string $name Tax identifier
+     */
+    public function taxOnSubtotal(
+        float|int $rate,
+        AmountType $type = AmountType::PERCENT,
+        string $name = 'tax'
+    ): self {
+        return $this->tax($rate, $type, $name, TaxMode::ON_SUBTOTAL);
+    }
+
+    /**
+     * Add a compounding tax that calculates on the running total.
+     *
+     * @param float|int $rate Tax rate (percentage) or amount (fixed)
+     * @param AmountType $type AmountType::PERCENT or AmountType::FIXED
+     * @param string $name Tax identifier
+     */
+    public function compoundingTax(
+        float|int $rate,
+        AmountType $type = AmountType::PERCENT,
+        string $name = 'tax'
+    ): self {
+        return $this->tax($rate, $type, $name, TaxMode::COMPOUNDING);
     }
 
     public function discount(float|int $amount, AmountType $type = AmountType::PERCENT, string $code = ''): self
@@ -59,9 +101,9 @@ final readonly class PriceBuilder implements Calculable
         return $this;
     }
 
-    public function shipping(float|int $amount, string $name = 'shipping'): self
+    public function shipping(float|int $cost, string $method = 'standard'): self
     {
-        $this->calculator->addComponent(new Shipping($amount, $name));
+        $this->calculator->addComponent(new Shipping($cost, $method));
 
         return $this;
     }
@@ -247,12 +289,17 @@ final readonly class PriceBuilder implements Calculable
         return $this->calculator->getBaseAmount();
     }
 
-    /**
-     * @throws InvalidCurrencyException
-     * @throws InvalidAmountException
-     */
+    // =========================================================================
+    // Calculation
+    // =========================================================================
+
     public function calculate(): Price
     {
         return $this->calculator->calculate();
+    }
+
+    public function getCalculator(): Calculator
+    {
+        return $this->calculator;
     }
 }
