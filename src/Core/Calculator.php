@@ -55,7 +55,8 @@ final class Calculator implements Calculable
         );
 
         $currentAmount = $this->baseAmount;
-        $breakdown = new Breakdown($this->baseAmount, $this->baseAmount, $this->baseAmount->getCurrency());
+
+        $steps = [];
 
         foreach ($sortedComponents as $component) {
             $before = $currentAmount;
@@ -63,22 +64,34 @@ final class Calculator implements Calculable
             $calculationContext->setCurrentTotal($currentAmount);
             $difference = $currentAmount->subtract($before);
 
-            $breakdown->addStep(
-                $component->getActionType(),
-                $component->getName(),
-                $difference,
-                $currentAmount,
-                [
+            $steps[] = [
+                'action' => $component->getActionType(),
+                'name' => $component->getName(),
+                'difference' => $difference,
+                'running_total' => $currentAmount,
+                'metadata' => [
                     'type' => $component->getType(),
                     'value' => $component->getValue(),
                     'priority' => $component->getPriority(),
-                ]
-            );
+                ],
+            ];
         }
 
         /** @var int $precision */
         $precision = $this->context->get('precision', 2);
         $finalTotal = $currentAmount->round($precision);
+
+        $breakdown = new Breakdown($this->baseAmount, $finalTotal, $this->baseAmount->getCurrency());
+
+        foreach ($steps as $step) {
+            $breakdown->addStep(
+                $step['action'],
+                $step['name'],
+                $step['difference'],
+                $step['running_total'],
+                $step['metadata']
+            );
+        }
 
         return new Price(
             $this->baseAmount,
