@@ -10,11 +10,11 @@ use DerrickOb\Pricer\Exceptions\InvalidAmountException;
 use DerrickOb\Pricer\Exceptions\InvalidCurrencyException;
 
 /**
- * Core calculation engine that processes components and produces a Price.
+ * Core calculator that processes components and produces a Price.
  */
 final class Calculator implements Calculable
 {
-    /** @var Component[] */
+    /** @var array<Component> */
     private array $components = [];
 
     public function __construct(
@@ -30,6 +30,14 @@ final class Calculator implements Calculable
         return $this;
     }
 
+    /**
+     * @return array<Component>
+     */
+    public function getComponents(): array
+    {
+        return $this->components;
+    }
+
     public function getBaseAmount(): Money
     {
         return $this->baseAmount;
@@ -40,9 +48,14 @@ final class Calculator implements Calculable
         return $this->baseAmount->getCurrency();
     }
 
+    public function getContext(): Context
+    {
+        return $this->context;
+    }
+
     /**
-     * @throws InvalidCurrencyException
      * @throws InvalidAmountException
+     * @throws InvalidCurrencyException
      */
     public function calculate(): Price
     {
@@ -62,6 +75,11 @@ final class Calculator implements Calculable
             $before = $currentAmount;
             $currentAmount = $component->apply($currentAmount, $calculationContext);
             $calculationContext->setCurrentTotal($currentAmount);
+
+            if ($component->getActionType() !== 'tax') {
+                $calculationContext->updateSubtotal($currentAmount);
+            }
+
             $difference = $currentAmount->subtract($before);
 
             $steps[] = [
