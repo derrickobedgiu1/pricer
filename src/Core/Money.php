@@ -120,16 +120,13 @@ final class Money implements Comparable, Formattable, \Stringable
      */
     public function round(int $precision = 2): self
     {
+        $scale = $precision + 10;
         $multiplier = bcpow('10', (string) $precision, 0);
-        $rounded = bcdiv(
-            bcadd(
-                bcmul($this->amount, $multiplier, 0),
-                '0.5',
-                0
-            ),
-            $multiplier,
-            $precision
-        );
+
+        $multiplied = bcmul($this->amount, $multiplier, $scale);
+        $withHalf = bcadd($multiplied, '0.5', $scale);
+        $truncated = bcmul($withHalf, '1', 0);
+        $rounded = bcdiv($truncated, $multiplier, $precision);
 
         return new self($rounded, $this->currency);
     }
